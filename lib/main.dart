@@ -34,7 +34,7 @@ class GameBoard extends StatefulWidget {
 class _GameBoardState extends State<GameBoard> {
   static PlayerState player = PlayerState.playerX;
 
-  List<String> boardState = ["", "", "", "", "", "", "", "", "", ""];
+  List<String> boardState = ["", "", "", "", "", "", "", "", ""];
   late bool gameEnded;
   bool draw = false;
   @override
@@ -50,7 +50,11 @@ class _GameBoardState extends State<GameBoard> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [_headerText(), _board(), _resetbutton()],
+          children: [
+            _headerText(),
+            _board(),
+            _resetbutton(),
+          ],
         ),
       ),
     );
@@ -115,8 +119,8 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   Widget _resetbutton() {
-    return FloatingActionButton(
-      child: const Icon(Icons.replay),
+    return ElevatedButton(
+      child: const Text("Reset"),
       onPressed: () {
         setState(() {
           boardState = ["", "", "", "", "", "", "", "", "", ""];
@@ -129,7 +133,10 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   void hasWon() {
-    if (boardState.every((e) => e != "")) {
+    bool test = boardState.every((e) => e != "");
+    print('test = $test');
+    print(boardState);
+    if (test) {
       gameEnded = true;
       draw = true;
     }
