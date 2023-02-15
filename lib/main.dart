@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 enum PlayerState {
@@ -62,9 +64,9 @@ class _GameBoardState extends State<GameBoard> {
 
   Widget _headerText() {
     if (!gameEnded) {
-      return Text('Player ${player == PlayerState.playerX ? "X" : "Y"} Turn');
+      return Text('Player ${player == PlayerState.playerX ? "X" : "O"} Turn');
     } else if (!draw) {
-      return Text('Player ${player == PlayerState.playerX ? "X" : "Y"} Won !');
+      return Text('Player ${player == PlayerState.playerX ? "X" : "O"} Won !');
     } else {
       return const Text("Draw !!");
     }
@@ -88,11 +90,34 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   Widget _box(int index) {
+    double sizeBottomLeft = 0,
+        sizeBottomRight = 0,
+        sizeTopLeft = 0,
+        sizeTopRight = 0;
+    switch (index) {
+      case 0:
+        sizeTopLeft = 30;
+        break;
+      case 2:
+        sizeTopRight = 30;
+        break;
+      case 6:
+        sizeBottomLeft = 30;
+        break;
+      case 8:
+        sizeBottomRight = 30;
+        break;
+      default:
+        sizeBottomLeft = 0;
+        sizeBottomRight = 0;
+        sizeTopLeft = 0;
+        sizeTopRight = 0;
+    }
     return InkWell(
       onTap: () {
         setState(() {
           if (boardState[index] == "" && !gameEnded) {
-            boardState[index] = player == PlayerState.playerX ? "X" : "Y";
+            boardState[index] = player == PlayerState.playerX ? "X" : "O";
             hasWon();
             if (!gameEnded) {
               player = player == PlayerState.playerX
@@ -103,8 +128,16 @@ class _GameBoardState extends State<GameBoard> {
         });
       },
       child: Container(
-        color: const Color.fromARGB(255, 84, 84, 84),
-        margin: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(sizeBottomLeft),
+            bottomRight: Radius.circular(sizeBottomRight),
+            topLeft: Radius.circular(sizeTopLeft),
+            topRight: Radius.circular(sizeTopRight),
+          ),
+          color: const Color.fromARGB(255, 244, 40, 84),
+        ),
         child: Center(
           child: Text(
             boardState[index],
@@ -119,23 +152,38 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   Widget _resetbutton() {
-    return ElevatedButton(
-      child: const Text("Reset"),
-      onPressed: () {
-        setState(() {
-          boardState = ["", "", "", "", "", "", "", "", "", ""];
-          gameEnded = false;
-          draw = false;
-          player = PlayerState.playerX;
-        });
-      },
+    return Container(
+      height: 44.0,
+      width: 150,
+      margin: const EdgeInsets.only(top: 35),
+      decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          gradient: LinearGradient(colors: [
+            Color.fromARGB(255, 249, 209, 83),
+            Color.fromARGB(255, 246, 171, 32)
+          ])),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            boardState = ["", "", "", "", "", "", "", "", "", ""];
+            gameEnded = false;
+            draw = false;
+            player = PlayerState.playerX;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent),
+        child: const Text(
+          "Reset",
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
     );
   }
 
   void hasWon() {
     bool test = boardState.every((e) => e != "");
-    print('test = $test');
-    print(boardState);
     if (test) {
       gameEnded = true;
       draw = true;
