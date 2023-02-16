@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 enum PlayerState {
   playerX,
@@ -35,7 +34,17 @@ class GameBoard extends StatefulWidget {
 
 class _GameBoardState extends State<GameBoard> {
   static PlayerState player = PlayerState.playerX;
-
+  List<double> winCrossPositionsX = [320, 190, 60];
+  List<double> winCrossPositionsY = [130, 8, -130];
+  List<double> winCrossRotations = [0.5, 4, -4, 2];
+  double winCrossPosX = 320;
+  double winCrossPosY = 0;
+  double winCrossRot = 0.5;
+  List<Color> winCrossColor = [
+    Colors.transparent,
+    const Color.fromARGB(255, 249, 209, 83)
+  ];
+  List<int> winCrossAlpha = [0, 135];
   List<String> boardState = ["", "", "", "", "", "", "", "", ""];
   late bool gameEnded;
   bool draw = false;
@@ -73,20 +82,43 @@ class _GameBoardState extends State<GameBoard> {
   }
 
   Widget _board() {
-    return Align(
-      alignment: Alignment.center,
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height / 2,
-        child: GridView.builder(
-          itemCount: 9,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3),
-          itemBuilder: (context, index) {
-            return _box(index);
-          },
+    return Stack(children: [
+      Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height / 2,
+          child: GridView.builder(
+            itemCount: 9,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3),
+            itemBuilder: (context, index) {
+              return _box(index);
+            },
+          ),
         ),
       ),
-    );
+      Positioned(
+          right: winCrossPosX,
+          bottom: winCrossPosY,
+          child: Transform.rotate(
+            angle: math.pi / winCrossRot,
+            child: Container(
+              decoration: BoxDecoration(
+                color: winCrossColor[gameEnded && !draw ? 1 : 0],
+                borderRadius: const BorderRadius.all(Radius.circular(35)),
+                boxShadow: [
+                  BoxShadow(
+                      color: Color.fromARGB(
+                          winCrossAlpha[gameEnded && !draw ? 1 : 0], 0, 0, 0),
+                      offset: const Offset(5, 5))
+                ],
+              ),
+              height: MediaQuery.of(context).size.height / 2.1,
+              width: 15,
+              margin: const EdgeInsets.only(top: 10),
+            ),
+          ))
+    ]);
   }
 
   Widget _box(int index) {
@@ -142,9 +174,15 @@ class _GameBoardState extends State<GameBoard> {
           child: Text(
             boardState[index],
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 50,
-            ),
+                color: Colors.white,
+                fontSize: 50,
+                fontFamily: 'Purple Smile',
+                shadows: [
+                  Shadow(
+                    color: Colors.black,
+                    offset: Offset(5, 5),
+                  )
+                ]),
           ),
         ),
       ),
@@ -165,7 +203,7 @@ class _GameBoardState extends State<GameBoard> {
       child: ElevatedButton(
         onPressed: () {
           setState(() {
-            boardState = ["", "", "", "", "", "", "", "", "", ""];
+            boardState = ["", "", "", "", "", "", "", "", ""];
             gameEnded = false;
             draw = false;
             player = PlayerState.playerX;
@@ -180,6 +218,12 @@ class _GameBoardState extends State<GameBoard> {
         ),
       ),
     );
+  }
+
+  void changePosition(int index1, int index2, int index3) {
+    winCrossPosX = winCrossPositionsX[index1];
+    winCrossPosY = winCrossPositionsY[index2];
+    winCrossRot = winCrossRotations[index3];
   }
 
   void hasWon() {
@@ -206,6 +250,33 @@ class _GameBoardState extends State<GameBoard> {
       if (pos1 != "" && pos2 != "" && pos3 != "") {
         if (pos1 == pos2 && pos2 == pos3) {
           gameEnded = true;
+          draw = false;
+          switch (winningPos.indexOf(element)) {
+            case 0:
+              changePosition(1, 0, 3);
+              break;
+            case 1:
+              changePosition(1, 1, 3);
+              break;
+            case 2:
+              changePosition(1, 2, 3);
+              break;
+            case 3:
+              changePosition(0, 1, 0);
+              break;
+            case 4:
+              changePosition(1, 1, 0);
+              break;
+            case 5:
+              changePosition(2, 1, 0);
+              break;
+            case 6:
+              changePosition(1, 1, 2);
+              break;
+            case 7:
+              changePosition(1, 1, 1);
+              break;
+          }
         }
       }
     }
