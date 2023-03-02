@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import 'package:dotted_border/dotted_border.dart';
+import 'package:tic_tac_toe/home.dart';
+import 'globals.dart' as global;
 
 enum PlayerState {
   playerX,
@@ -7,7 +9,7 @@ enum PlayerState {
 }
 
 void main() {
-  runApp(const MyApp());
+  runApp(const AppFirstPage());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,19 +35,13 @@ class GameBoard extends StatefulWidget {
 }
 
 class _GameBoardState extends State<GameBoard> {
+  final Color pinkColor = global.pink;
+  final Color yellowColor = global.yellow;
+  final String funnyFont = global.purpleSmileFont;
+  final String mainFont = global.mainFont;
   static PlayerState player = PlayerState.playerX;
-  List<double> winCrossPositionsX = [320, 190, 60];
-  List<double> winCrossPositionsY = [130, 8, -130];
-  List<double> winCrossRotations = [0.5, 4, -4, 2];
-  double winCrossPosX = 320;
-  double winCrossPosY = 0;
-  double winCrossRot = 0.5;
-  List<Color> winCrossColor = [
-    Colors.transparent,
-    const Color.fromARGB(255, 249, 209, 83)
-  ];
-  List<int> winCrossAlpha = [0, 135];
   List<String> boardState = ["", "", "", "", "", "", "", "", ""];
+  List<int> winningCases = [20, 20, 20];
   late bool gameEnded;
   bool draw = false;
   @override
@@ -56,69 +52,69 @@ class _GameBoardState extends State<GameBoard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _headerText(),
-            _board(),
-            _resetbutton(),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+          gradient: LinearGradient(colors: [
+        Color.fromARGB(255, 253, 218, 229),
+        Color.fromARGB(255, 253, 239, 241)
+      ], begin: Alignment.bottomCenter, end: Alignment.topCenter)),
+      child: Scaffold(
+        appBar: global.defaultAppBar("Tic Tac Toe", context, () {
+          Navigator.pop(context);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AppFirstPage(),
+              ));
+        }, true),
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _headerText(),
+              _board(),
+              global.standardButton(resetFunction, "Reset"),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _headerText() {
+    TextStyle font = TextStyle(
+        fontFamily: "Helvetica Rounded Bold", fontSize: 25, color: pinkColor);
     if (!gameEnded) {
-      return Text('Player ${player == PlayerState.playerX ? "X" : "O"} Turn');
+      return Text(
+        'Player ${player == PlayerState.playerX ? "X" : "O"} Turn',
+        style: font,
+      );
     } else if (!draw) {
-      return Text('Player ${player == PlayerState.playerX ? "X" : "O"} Won !');
+      return Text(
+        'Player ${player == PlayerState.playerX ? "X" : "O"} Won !',
+        style: font,
+      );
     } else {
-      return const Text("Draw !!");
+      return Text(
+        "Draw !!",
+        style: font,
+      );
     }
   }
 
   Widget _board() {
-    return Stack(children: [
-      Align(
-        alignment: Alignment.center,
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height / 2,
-          child: GridView.builder(
-            itemCount: 9,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3),
-            itemBuilder: (context, index) {
-              return _box(index);
-            },
-          ),
-        ),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height / 2,
+      child: GridView.builder(
+        itemCount: 9,
+        gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+        itemBuilder: (context, index) {
+          return _box(index);
+        },
       ),
-      Positioned(
-          right: winCrossPosX,
-          bottom: winCrossPosY,
-          child: Transform.rotate(
-            angle: math.pi / winCrossRot,
-            child: Container(
-              decoration: BoxDecoration(
-                color: winCrossColor[gameEnded && !draw ? 1 : 0],
-                borderRadius: const BorderRadius.all(Radius.circular(35)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Color.fromARGB(
-                          winCrossAlpha[gameEnded && !draw ? 1 : 0], 0, 0, 0),
-                      offset: const Offset(5, 5))
-                ],
-              ),
-              height: MediaQuery.of(context).size.height / 2.1,
-              width: 15,
-              margin: const EdgeInsets.only(top: 10),
-            ),
-          ))
-    ]);
+    );
   }
 
   Widget _box(int index) {
@@ -126,6 +122,10 @@ class _GameBoardState extends State<GameBoard> {
         sizeBottomRight = 0,
         sizeTopLeft = 0,
         sizeTopRight = 0;
+    Color color = const Color.fromARGB(255, 244, 40, 84);
+    winningCases.contains(index)
+        ? color = const Color.fromARGB(255, 249, 212, 89)
+        : const Color.fromARGB(255, 244, 40, 84);
     switch (index) {
       case 0:
         sizeTopLeft = 30;
@@ -145,85 +145,61 @@ class _GameBoardState extends State<GameBoard> {
         sizeTopLeft = 0;
         sizeTopRight = 0;
     }
-    return InkWell(
-      onTap: () {
-        setState(() {
-          if (boardState[index] == "" && !gameEnded) {
-            boardState[index] = player == PlayerState.playerX ? "X" : "O";
-            hasWon();
-            if (!gameEnded) {
-              player = player == PlayerState.playerX
-                  ? PlayerState.playerY
-                  : PlayerState.playerX;
-            }
-          }
-        });
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(sizeBottomLeft),
-            bottomRight: Radius.circular(sizeBottomRight),
-            topLeft: Radius.circular(sizeTopLeft),
-            topRight: Radius.circular(sizeTopRight),
-          ),
-          color: const Color.fromARGB(255, 244, 40, 84),
-        ),
-        child: Center(
-          child: Text(
-            boardState[index],
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 50,
-                fontFamily: 'Purple Smile',
-                shadows: [
-                  Shadow(
-                    color: Colors.black,
-                    offset: Offset(5, 5),
-                  )
-                ]),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _resetbutton() {
-    return Container(
-      height: 44.0,
-      width: 150,
-      margin: const EdgeInsets.only(top: 35),
-      decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(25)),
-          gradient: LinearGradient(colors: [
-            Color.fromARGB(255, 249, 209, 83),
-            Color.fromARGB(255, 246, 171, 32)
-          ])),
-      child: ElevatedButton(
-        onPressed: () {
+    return DottedBorder(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () {
           setState(() {
-            boardState = ["", "", "", "", "", "", "", "", ""];
-            gameEnded = false;
-            draw = false;
-            player = PlayerState.playerX;
+            if (boardState[index] == "" && !gameEnded) {
+              boardState[index] = player == PlayerState.playerX ? "X" : "O";
+              hasWon();
+              if (!gameEnded) {
+                player = player == PlayerState.playerX
+                    ? PlayerState.playerY
+                    : PlayerState.playerX;
+              }
+            }
           });
         },
-        style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent),
-        child: const Text(
-          "Reset",
-          style: TextStyle(color: Colors.black),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(sizeBottomLeft),
+              bottomRight: Radius.circular(sizeBottomRight),
+              topLeft: Radius.circular(sizeTopLeft),
+              topRight: Radius.circular(sizeTopRight),
+            ),
+            color: color,
+          ),
+          child: Center(
+            child: Text(
+              boardState[index],
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 50,
+                  fontFamily: funnyFont,
+                  shadows: const [
+                    Shadow(
+                      color: Colors.black,
+                      offset: Offset(5, 5),
+                    )
+                  ]),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  void changePosition(int index1, int index2, int index3) {
-    winCrossPosX = winCrossPositionsX[index1];
-    winCrossPosY = winCrossPositionsY[index2];
-    winCrossRot = winCrossRotations[index3];
+  void resetFunction() {
+    setState(() {
+      boardState = ["", "", "", "", "", "", "", "", ""];
+      gameEnded = false;
+      draw = false;
+      player = PlayerState.playerX;
+      winningCases = [20, 20, 20];
+    });
   }
 
   void hasWon() {
@@ -251,32 +227,9 @@ class _GameBoardState extends State<GameBoard> {
         if (pos1 == pos2 && pos2 == pos3) {
           gameEnded = true;
           draw = false;
-          switch (winningPos.indexOf(element)) {
-            case 0:
-              changePosition(1, 0, 3);
-              break;
-            case 1:
-              changePosition(1, 1, 3);
-              break;
-            case 2:
-              changePosition(1, 2, 3);
-              break;
-            case 3:
-              changePosition(0, 1, 0);
-              break;
-            case 4:
-              changePosition(1, 1, 0);
-              break;
-            case 5:
-              changePosition(2, 1, 0);
-              break;
-            case 6:
-              changePosition(1, 1, 2);
-              break;
-            case 7:
-              changePosition(1, 1, 1);
-              break;
-          }
+          winningCases[0] = element[0];
+          winningCases[1] = element[1];
+          winningCases[2] = element[2];
         }
       }
     }
